@@ -90,3 +90,4 @@ To use Grounded Fact-Check, upload law PDFs in the Fact-Check page (or drop them
 - Add persistent mapping DB + import tools for official IPC→BNS mappings.
 - Integrate local LLM for summaries/explanations (Ollama / LM Studio).
 - Add tests and CI for engine modules.
+
