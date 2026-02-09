@@ -1,5 +1,7 @@
 import streamlit as st
 import os
+import html as html_lib
+import re
 
 # Page Configuration
 st.set_page_config(page_title="LexTransition AI", page_icon="⚖️", layout="wide")
@@ -7,6 +9,27 @@ st.set_page_config(page_title="LexTransition AI", page_icon="⚖️", layout="wi
 # Initialize session state for navigation
 if "current_page" not in st.session_state:
     st.session_state.current_page = "Home"
+
+# Security helpers (avoid path traversal / HTML injection in UI-rendered HTML)
+_SAFE_FILENAME_RE = re.compile(r"[^A-Za-z0-9._-]+")
+
+def _safe_filename(name: str, default: str) -> str:
+    base = os.path.basename(name or "").strip().replace("\x00", "")
+    if not base:
+        return default
+    safe = _SAFE_FILENAME_RE.sub("_", base).strip("._")
+    return safe or default
+
+def _dedupe_path(path: str) -> str:
+    if not os.path.exists(path):
+        return path
+    stem, ext = os.path.splitext(path)
+    i = 1
+    while True:
+        candidate = f"{stem}_{i}{ext}"
+        if not os.path.exists(candidate):
+            return candidate
+        i += 1
 
 # URL-based navigation (clickable cards via ?page=...) with sidebar precedence
 
@@ -53,8 +76,6 @@ def _goto(page: str):
 # Custom Styling (Dark Theme with Shiny Background)
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap');
-
 /* Background - Textured Shining Black */
 [data-testid="stAppViewContainer"] {
     background: #000000;
@@ -544,9 +565,10 @@ except Exception:
         return None
 
 # Index PDFs at startup if engine available
-if ENGINES_AVAILABLE:
+if ENGINES_AVAILABLE and not st.session_state.get("pdf_indexed"):
     try:
         index_pdfs("law_pdfs")
+        st.session_state.pdf_indexed = True
     except Exception:
         pass
 
@@ -583,7 +605,7 @@ if current_page == "Home":
                 <span class="home-card-icon">✓</span>
                 <div class="home-card-title">Convert IPC to BNS</div>
             </div>
-            <div class="home-card-desc">Map old IPC sections to new BNS ee,indsJaris.</div>
+            <div class="home-card-desc">Map old IPC sections to new BNS equivalents.</div>
             <div class="home-card-btn">
                 <span>Open Mapper</span>
                 <span>›</span>
@@ -665,27 +687,33 @@ elif current_page == "Mapper":
             if result:
                 # Styled result card
                 ipc = search_query.strip()
-                bns = result.get('bns_section', 'N/A')
-                notes = result.get('notes', 'See source mapping.')
+                bns = result.get("bns_section", "N/A")
+                notes = result.get("notes", "See source mapping.")
+                source = result.get("source", "mapping_db")
+
+                ipc_html = html_lib.escape(str(ipc))
+                bns_html = html_lib.escape(str(bns))
+                notes_html = html_lib.escape(str(notes))
+                source_html = html_lib.escape(str(source))
 
                 st.markdown(f"""
                 <div class="result-card">
-                    <div class="result-badge">Mapping • <span style="opacity:0.9">hound</span></div>
+                    <div class="result-badge">Mapping • <span style="opacity:0.9">found</span></div>
                     <div class="result-grid">
                         <div class="result-col">
                             <div class="result-col-title">IPC Section</div>
-                            <div style="font-size:20px;font-weight:700;color:#ffffff;margin-top:6px;">{ipc}</div>
+                            <div style="font-size:20px;font-weight:700;color:#ffffff;margin-top:6px;">{ipc_html}</div>
                         </div>
                         <div class="result-col">
                             <div class="result-col-title">BNS Section</div>
-                            <div style="font-size:20px;font-weight:700;color:#cfeadf;margin-top:6px;">{bns}</div>
+                            <div style="font-size:20px;font-weight:700;color:#cfeadf;margin-top:6px;">{bns_html}</div>
                         </div>
                     </div>
                     <ul class="result-list">
-                        <li>Offence of cheating retained</li>
-                        <li>Penalty wording updated</li>
-                        <li>Scope expanded to digital fraud</li>
+                        <li>{notes_html}</li>
+                        <li>Verify against official text before relying on it</li>
                     </ul>
+                    <div style="position:absolute;left:14px;bottom:14px;font-size:12px;opacity:0.8;color:#bfc9c4;">Source: {source_html}</div>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -696,7 +724,6 @@ elif current_page == "Mapper":
                     st.info("Opening legal text viewer...")
                 
                 st.divider()
-                st.markdown(f"**Source:** _{result.get('source','mapping_db')}_")
             else:
                 st.warning("⚠️ Section not found in mapping")
                 with st.expander("➕ Add New Mapping"):
@@ -786,12 +813,13 @@ elif current_page == "Fact":
     if uploaded_pdf:
         save_dir = "law_pdfs"
         os.makedirs(save_dir, exist_ok=True)
-        dest_path = os.path.join(save_dir, uploaded_pdf.name)
+        safe_name = _safe_filename(uploaded_pdf.name, default="law.pdf")
+        dest_path = _dedupe_path(os.path.join(save_dir, safe_name))
         with open(dest_path, "wb") as f:
             f.write(uploaded_pdf.read())
         if ENGINES_AVAILABLE:
             add_pdf(dest_path)
-        st.success(f"✓ '{uploaded_pdf.name}' added to corpus")
+        st.success(f"✓ '{os.path.basename(dest_path)}' added to corpus")
     
     st.divider()
     
@@ -812,9 +840,8 @@ elif current_page == "Fact":
             else:
                 st.info("ℹ️ No citations found. Add PDFs to law_pdfs/ folder to enable search.")
         else:
-            st.markdown("> **Answer:** Under BNS, theft is defined under Section 303.")
-            st.markdown("> - **Bharatiya Twayne Sunhta, Section 318, Page 82**")
-            st.markdown("> - **Chapter:** XVII (Offences Against Property)")
+            st.markdown("> **Example output (engine disabled):**")
+            st.markdown("> - Add official PDFs to `law_pdfs/` and click **Verify** to get grounded citations.")
 
 # ============================================================================
 # PAGE: SETTINGS / ABOUT
