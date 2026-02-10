@@ -4,6 +4,7 @@ Local LLM adapter (optional).
 - If not configured, falls back to a lightweight extractive summary (first N sentences).
 """
 import os
+import json
 
 OLLAMA_URL = os.environ.get("LTA_OLLAMA_URL")  # e.g., http://localhost:11434
 OLLAMA_MODEL = os.environ.get("LTA_OLLAMA_MODEL", "llama2")
@@ -21,13 +22,32 @@ def summarize(text: str, question: str = None) -> str:
             import requests  # local import to keep dependency optional
             payload = {
                 "model": OLLAMA_MODEL,
-                "prompt": f"Summarize the following legal text in plain language:{' Question: '+question if question else ''}\n\n{text}"
+                "prompt": f"Summarize the following legal text in plain language:{' Question: '+question if question else ''}\n\n{text}",
+                # Ollama streams newline-delimited JSON by default; disable for simpler parsing.
+                "stream": False,
             }
             resp = requests.post(f"{OLLAMA_URL}/api/generate", json=payload, timeout=15)
             if resp.ok:
-                data = resp.json()
-                # Many Ollama responses include 'text' in result
-                return data.get("text") or str(data)
+                try:
+                    data = resp.json()
+                    # Ollama typically returns {"response": "..."} for /api/generate
+                    return data.get("response") or data.get("text") or str(data)
+                except Exception:
+                    # Fallback: handle NDJSON streaming responses (or unexpected formats)
+                    combined = []
+                    for line in resp.text.splitlines():
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            obj = json.loads(line)
+                        except Exception:
+                            continue
+                        chunk = obj.get("response") or obj.get("text")
+                        if chunk:
+                            combined.append(str(chunk))
+                    if combined:
+                        return "".join(combined).strip()
         except Exception:
             pass
     # fallback

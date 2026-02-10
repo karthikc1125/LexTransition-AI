@@ -7,6 +7,16 @@ Functions:
 import io
 from typing import List
 
+_EASYOCR_READER = None
+
+def _get_easyocr_reader():
+    global _EASYOCR_READER
+    if _EASYOCR_READER is not None:
+        return _EASYOCR_READER
+    import easyocr  # type: ignore
+    _EASYOCR_READER = easyocr.Reader(["en"], gpu=False)
+    return _EASYOCR_READER
+
 def available_engines() -> List[str]:
     engines = []
     try:
@@ -24,9 +34,8 @@ def available_engines() -> List[str]:
 def extract_text(file_bytes: bytes) -> str:
     # Try EasyOCR first
     try:
-        import easyocr  # type: ignore
         from PIL import Image  # type: ignore
-        reader = easyocr.Reader(['en'], gpu=False)
+        reader = _get_easyocr_reader()
         image = Image.open(io.BytesIO(file_bytes))
         result = reader.readtext(image)
         return " ".join([r[1] for r in result])
