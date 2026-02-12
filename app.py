@@ -6,6 +6,15 @@ import re
 # Page Configuration
 st.set_page_config(page_title="LexTransition AI", page_icon="⚖️", layout="wide")
 
+# Access the CSS file
+def load_css(file_path):
+    if os.path.exists(file_path):
+        with open(file_path) as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+# Load the CSS file
+load_css("assets/styles.css")
+
 # Initialize session state for navigation
 if "current_page" not in st.session_state:
     st.session_state.current_page = "Home"
@@ -73,482 +82,47 @@ def _goto(page: str):
         pass
     st.rerun()
 
-# Custom Styling (Dark Theme with Shiny Background)
-st.markdown("""
-<style>
-/* Background - Textured Shining Black */
-[data-testid="stAppViewContainer"] {
-    background: var(--background-color);
-    position: relative;
-    overflow: hidden;
-    min-height: 100vh;
-    z-index: 0;
-}
+# Header Navigation
+nav_items = [
+    ("Home", "Home"),
+    ("Mapper", "IPC -> BNS Mapper"),
+    ("OCR", "Document OCR"),
+    ("Fact", "Fact Checker"),
+    ("Settings", "Settings / About"),
+]
 
-/* Strong gloss and glass-like texture */
-[data-testid="stAppViewContainer"]::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background:
-        /* soft highlights */
-        radial-gradient(650px 240px at 8% 12%, rgba(255,255,255,0.10), transparent 18%),
-        radial-gradient(600px 220px at 85% 18%, rgba(255,255,255,0.08), transparent 16%),
-        radial-gradient(400px 140px at 50% 30%, rgba(255,255,255,0.05), transparent 30%),
-        /* vertical sheen */
-        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0) 22%),
-        /* subtle diagonal glass streaks */
-        repeating-linear-gradient(45deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, rgba(255,255,255,0) 6px),
-        repeating-linear-gradient(-45deg, rgba(255,255,255,0.008) 0px, rgba(255,255,255,0.008) 1px, rgba(255,255,255,0) 12px),
-        /* faint dot/noise for texture */
-        radial-gradient(rgba(255,255,255,0.004) 1px, transparent 1.5px);
-    opacity: 1;
-    filter: blur(1px) saturate(1);
-    background-size: auto, auto, auto, auto, 14px 14px, 28px 28px, 6px 6px;
-}
+header_links = []
+for page, label in nav_items:
+    page_html = html_lib.escape(page)
+    label_html = html_lib.escape(label)
+    active_class = "active" if st.session_state.current_page == page else ""
+    header_links.append(
+        f'<a class="top-nav-link {active_class}" href="?page={page_html}" target="_self" '
+        f'title="{label_html}" aria-label="{label_html}">{label_html}</a>'
+    )
 
-/* Center sheen */
-[data-testid="stAppViewContainer"]::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background: radial-gradient(60% 45% at 50% 28%, rgba(255,255,255,0.08), rgba(0,0,0,0.96));
-    opacity: 0.18;
-    filter: blur(2px);
-}
+st.markdown(
+    f"""
+<!-- Compact fixed site logo -->
+<a class="site-logo" href="?page=Home" target="_self"><span class="logo-icon">⚖️</span><span class="logo-text">LexTransition AI</span></a>
 
-/* Add thin glass lines near top-left */
-[data-testid="stAppViewContainer"] .glass-stripe {
-    position: absolute;
-    top: 56px;
-    left: 120px;
-    width: 640px;
-    height: 160px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.0));
-    transform: rotate(-6deg);
-    pointer-events: none;
-    opacity: 0.65;
-}
-
-[data-testid="stSidebarNav"] {
-    background: var(--secondary-background-color);
-    border-right: 1px solid rgba(255,255,255,0.02);
-}
-
-/* Global font */
-* {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins', 'Inter', sans-serif;
-    font-weight: 700;
-}
-
-/* Home Page Styling */
-.main-container {
-    max-width: 1000px;
-}
-
-.home-header {
-    margin-bottom: 30px;
-}
-
-.home-title {
-    font-size: 32px;
-    font-weight: 700;
-    color: var(--text-color);
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-    letter-spacing: -0.5px;
-}
-
-.home-subtitle {
-    font-size: 14px;
-    color: var(--text-color);
-    opacity: 0.8;
-    max-width: 650px;
-    line-height: 1.6;
-    margin-top: 8px;
-    font-weight: 400;
-}
-
-.home-what {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-color);
-    margin-top: 28px;
-    margin-bottom: 18px;
-}
-
-/* Home Cards - Compact Black Theme */
-.home-card {
-    background: var(--secondary-background-color);
-    border: 1px solid rgba(80, 80, 80, 0.25);
-    border-radius: 12px;
-    padding: 22px;
-    min-height: 150px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(8px);
-    position: relative;
-    overflow: hidden;
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
-}
-
-.home-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at top right, rgba(100, 100, 100, 0.08), transparent);
-    pointer-events: none;
-}
-
-.home-card:hover {
-    border-color: var(--primary-color);
-    transform: translateY(-6px);
-    background: var(--secondary-background-color);
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 20px 40px rgba(0, 0, 0, 0.2), 0 0 20px rgba(100, 100, 100, 0.15);
-    cursor: pointer;
-}
-
-/* make anchor cards behave like blocks and inherit text color */
-a.home-card { text-decoration: none !important; display: block; color: inherit; }
-
-.home-card-icon {
-    font-size: 16px;
-    margin-right: 8px;
-    color: var(--primary-color);
-}
-
-.home-card-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-}
-
-.home-card-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-color);
-    font-family: 'Poppins', sans-serif;
-    margin: 0;
-}
-
-.home-card-desc {
-    font-size: 13px;
-    color: var(--text-color);
-    opacity: 0.8;
-    line-height: 1.55;
-    margin-bottom: 14px;
-    flex-grow: 1;
-}
-
-.home-card-btn {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--primary-color);
-    padding: 8px 0;
-    border-top: 1px solid rgba(80, 80, 80, 0.15);
-    margin-top: 2px;
-    cursor: pointer;
-}
-.home-card-btn span:last-child {
-    font-size: 18px;
-}
-
-/* Compact Home Card (provided design) */
-.home-card-compact {
-    background: var(--secondary-background-color);
-    border: 1px solid rgba(255,255,255,0.02);
-    border-radius: 12px;
-    padding: 12px 14px;
-    min-height: 100px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    transition: all 0.18s ease;
-}
-
-.home-card-compact:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.45);
-}
-
-.home-card-compact .home-card-header { align-items: flex-start; }
-.home-card-compact .home-card-title { font-size: 14px; font-weight: 700; color: var(--text-color); }
-.home-card-compact .home-card-desc { font-size: 12px; color: var(--text-color); opacity: 0.8; margin-top: 6px; }
-.home-card-action { height: 44px; display:flex; align-items:center; }
-
-/* Style Streamlit button so it visually matches the small pill button in the design */
-.home-card-compact + .stButton > button {
-    background: linear-gradient(180deg, rgba(28,28,28,0.95), rgba(20,20,20,0.95)) !important;
-    color: #d9e7df !important;
-    border: 1px solid rgba(255,255,255,0.03) !important;
-    padding: 8px 12px !important;
-    border-radius: 8px !important;
-    font-weight: 600 !important;
-    height: 36px !important;
-    width: 160px !important;
-    margin-top: -48px !important;
-}
-
-.home-card-compact + .stButton > button:after {
-    content: '›';
-    margin-left: 8px;
-    opacity: 0.85;
-}
-
-/* Result Card (Mapper) */
-.result-card {
-    background: var(--secondary-background-color);
-    border: 1px solid rgba(80, 120, 90, 0.08);
-    border-radius: 12px;
-    padding: 12px 14px 56px 14px;
-    margin-top: 8px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.55);
-    position: relative;
-} 
-
-.result-badge {
-    display: inline-block;
-    background: var(--secondary-background-color);
-    border: 1px solid var(--primary-color);
-    color: var(--primary-color);
-    font-weight: 700;
-    padding: 6px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    margin-bottom: 12px;
-}
-
-.result-grid {
-    display: flex;
-    gap: 18px;
-    margin-bottom: 12px;
-}
-
-.result-col {
-    flex: 1;
-    background: rgba(255,255,255,0.01);
-    border: 1px solid rgba(255,255,255,0.02);
-    padding: 12px 14px;
-    border-radius: 10px;
-    min-height: 64px;
-}
-
-.result-col-title {
-    font-size: 12px;
-    color: var(--text-color);
-    font-weight: 700;
-}
-
-.result-list {
-    margin: 10px 0 12px 18px;
-    color: var(--text-color);
-}
-
-/* Position actual Streamlit buttons so they visually sit inside the result card */
-.result-card + .stButton {
-    margin-top: -46px;
-    display: inline-block;
-    margin-right: 8px;
-}
-
-.result-card + .stButton > button {
-    background: linear-gradient(180deg, rgba(24,24,27,0.95), rgba(17,17,20,0.95)) !important;
-    color: #ffffff !important;
-    border: 1px solid transparent !important;
-    border-image: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04)) 1 !important;
-    padding: 10px 16px !important;
-    border-radius: 10px !important;
-    font-weight: 800 !important;
-    height: 42px !important;
-    letter-spacing: 0.2px !important;
-    box-shadow: none !important;
-}
-
-/* remove glossy pseudo elements */
-.result-card + .stButton > button::before,
-.result-card + .stButton > button::after { content: none !important; }
-
-.result-card + .stButton + .stButton > button {
-    background: linear-gradient(180deg, rgba(28,28,28,0.96), rgba(12,12,12,0.96)) !important;
-    color: #e5e7eb !important;
-    border: 1px solid rgba(255,255,255,0.06) !important;
-    border-radius: 999px !important;
-}
-
-/* make bullets tighter */
-.result-list li { margin-bottom: 6px; }
-
-/* small tweak for small screens */
-@media (max-width: 800px) {
-    .result-grid { flex-direction: column; }
-    .result-card { padding-bottom: 64px; }
-}
-
-/* Sidebar */
-.sidebar-title {
-    color: var(--text-color);
-    font-size: 20px;
-    font-weight: 700;
-    font-family: 'Poppins', sans-serif;
-    margin-bottom: 12px;
-}
-
-.sidebar-badge {
-    color: var(--primary-color);
-    font-size: 12px;
-    font-weight: 600;
-    margin-top: 16px;
-}
-
-/* Column container for cards and buttons */
-[data-testid="column"] {
-    position: relative;
-}
-
-/* Flat-modern buttons (no 3D, crisp underline) */
-.stButton>button {
-    height: 42px;
-    border-radius: 10px;
-    color: #ffffff;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-    font-size: 14px;
-    margin-top: 0;
-    position: relative;
-    z-index: 10;
-    width: auto;
-    padding: 0 18px;
-    background: linear-gradient(180deg, rgba(24,24,27,0.95), rgba(17,17,20,0.95));
-    border: 1px solid transparent;
-    border-image: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04)) 1;
-    box-shadow: none;
-    backdrop-filter: saturate(110%);
-    transition: background 0.2s ease, color 0.2s ease;
-    /* underline */
-    background-image:
-      linear-gradient(180deg, rgba(24,24,27,0.95), rgba(17,17,20,0.95)),
-      linear-gradient(90deg, #22c55e, #0ea5e9);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
-}
-
-/* remove glossy pseudo elements */
-.stButton>button::before, .stButton>button::after { content: none !important; }
-
-.stButton>button:hover {
-    background-image:
-      linear-gradient(180deg, rgba(30,30,34,0.98), rgba(20,20,24,0.98)),
-      linear-gradient(90deg, #34d399, #60a5fa);
-}
-
-.stButton>button:focus-visible {
-    outline: 2px solid #60a5fa;
-    outline-offset: 2px;
-}
-
-.stButton>button:active {
-    transform: translateY(0);
-}
-
-/* Home: full-width glossy CTA in cards */
-.home-card + .stButton > button {
-    width: 100% !important;
-    margin-top: -95px !important;
-    padding: 0 20px !important;
-    height: 46px !important;
-    border-radius: 12px !important;
-    background: linear-gradient(180deg, rgba(24,24,27,0.95), rgba(17,17,20,0.95)) !important;
-    color: #ffffff !important;
-    border: 1px solid transparent !important;
-    border-image: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04)) 1 !important;
-    box-shadow: none !important;
-}
-
-.home-card + .stButton > button::before {
-    content: ""; position: absolute; left: 10px; right: 10px; top: 4px; height: 40%; border-radius: 999px; background: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0.02)); pointer-events:none;
-}
-
-.home-card + .stButton > button::after {
-    content: ""; position: absolute; left: 20px; right: 20px; bottom: -4px; height: 10px; border-radius: 999px; background: radial-gradient(60% 100% at 50% 0%, rgba(255,255,255,0.24), rgba(0,0,0,0)); opacity:0.55; filter: blur(6px);
-}
-
-/* Mapper: container for result, ensures correct layout */
-.mapper-wrap { max-width: 920px; margin: 0 auto; position: relative; }
-
-/* Position result buttons inline and overlay the bottom-right of the card */
-.mapper-wrap .result-card + .stButton {
-    margin-top: -52px;
-    display: inline-block;
-    float: right;
-}
-
-.mapper-wrap .result-card + .stButton > button {
-    width: auto !important;
-    padding: 8px 14px !important;
-    height: 36px !important;
-}
-
-.mapper-wrap .result-card + .stButton + .stButton {
-    margin-right: 10px; /* gap between buttons */
-    float: right;
-}
-
-/* Clear floats after result area */
-.mapper-wrap::after { content: ""; display: block; clear: both; }
-
-/* Text Colors */
-p, span, label {
-    color: var(--text-color);
-}
-
-h1, h2, h3 {
-    color: var(--text-color);
-}
-
-/* Dividers */
-hr {
-    border-color: rgba(100, 100, 100, 0.15);
-}
-</style>
-""", unsafe_allow_html=True)
-
-
-# Sidebar Navigation (Dark Theme)
-with st.sidebar:
-    st.markdown('<p class="sidebar-title">⚖️ LexTransition AI</p>', unsafe_allow_html=True)
-    st.info("Offline legal assistant: Mapping IPC to BNS")
-    st.divider()
-    
-    if st.button("🏠 Home", use_container_width=True):
-        _goto("Home")
-    if st.button("🔄 IPC → BNS Mapper", use_container_width=True):
-        _goto("Mapper")
-    if st.button("🖼️ Document OCR", use_container_width=True):
-        _goto("OCR")
-    if st.button("📚 Fact Checker", use_container_width=True):
-        _goto("Fact")
-    if st.button("⚙️ Settings / About", use_container_width=True):
-        _goto("Settings")
-    
-    st.divider()
-    st.markdown('<p class="sidebar-badge">✓ Offline Mode</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sidebar-badge">✓ Privacy First</p>', unsafe_allow_html=True)
+<div class="top-header">
+  <div class="top-header-inner">
+    <div class="top-header-left">
+      <!-- header brand is hidden by CSS; left here for semantics/accessibility -->
+      <a class="top-brand" href="?page=Home" target="_self">LexTransition AI</a>
+    </div>
+    <div class="top-header-center">
+      <div class="top-nav">{''.join(header_links)}</div>
+    </div>
+    <div class="top-header-right">
+      <a class="top-cta" href="?page=Fact" target="_self">Get Started</a>
+    </div>
+  </div>
+</div>
+""",
+    unsafe_allow_html=True,
+)
 
 # Attempt to import engines (use stubs if missing)
 try:
@@ -556,6 +130,7 @@ try:
     from engine.mapping_logic import map_ipc_to_bns, add_mapping
     from engine.rag_engine import search_pdfs, add_pdf, index_pdfs
     from engine.llm import summarize as llm_summarize
+    from engine.db import import_mappings_from_csv, import_mappings_from_excel, export_mappings_to_json, export_mappings_to_csv
     ENGINES_AVAILABLE = True
 except Exception:
     ENGINES_AVAILABLE = False
@@ -682,7 +257,75 @@ elif current_page == "Mapper":
         search_query = st.text_input("Enter IPC Section", placeholder="e.g., 420, 302, 378")
     with col2:
         search_btn = st.button("🔍 Find BNS Eq.", use_container_width=True)
-    
+
+    # Import/Export Section
+    st.markdown("### 📥 Import / 📤 Export Mappings")
+    col_import, col_export = st.columns(2)
+
+    with col_import:
+        uploaded_mapping = st.file_uploader("Import from CSV/Excel", type=["csv", "xlsx"], key="mapping_upload")
+        if uploaded_mapping and st.button("📥 Import Mappings", use_container_width=True):
+            try:
+                import tempfile
+                import os
+                with tempfile.NamedTemporaryFile(delete=False, suffix=f".{uploaded_mapping.name.split('.')[-1]}") as tmp_file:
+                    tmp_file.write(uploaded_mapping.read())
+                    tmp_path = tmp_file.name
+
+                if uploaded_mapping.name.endswith('.csv'):
+                    success_count, errors = import_mappings_from_csv(tmp_path)
+                elif uploaded_mapping.name.endswith('.xlsx'):
+                    success_count, errors = import_mappings_from_excel(tmp_path)
+                else:
+                    st.error("Unsupported file format")
+                    success_count = 0
+                    errors = ["Unsupported file format"]
+
+                os.unlink(tmp_path)
+
+                if success_count > 0:
+                    st.success(f"✓ Successfully imported {success_count} mappings")
+                if errors:
+                    st.warning("Import completed with errors:")
+                    for error in errors:
+                        st.write(f"- {error}")
+
+            except Exception as e:
+                st.error(f"Import failed: {str(e)}")
+
+    with col_export:
+        export_format = st.selectbox("Export Format", ["JSON", "CSV"], key="export_format")
+        if st.button("📤 Export Mappings", use_container_width=True):
+            try:
+                import tempfile
+                import os
+                with tempfile.NamedTemporaryFile(delete=False, suffix=f".{export_format.lower()}") as tmp_file:
+                    tmp_path = tmp_file.name
+
+                if export_format == "JSON":
+                    success = export_mappings_to_json(tmp_path)
+                else:
+                    success = export_mappings_to_csv(tmp_path)
+
+                if success:
+                    with open(tmp_path, "rb") as f:
+                        st.download_button(
+                            label=f"📥 Download {export_format}",
+                            data=f,
+                            file_name=f"ipc_bns_mappings.{export_format.lower()}",
+                            mime="application/json" if export_format == "JSON" else "text/csv",
+                            use_container_width=True
+                        )
+                else:
+                    st.error("Export failed")
+
+                os.unlink(tmp_path)
+
+            except Exception as e:
+                st.error(f"Export failed: {str(e)}")
+
+    st.divider()
+
     # Results Section
     if search_query and search_btn:
         if ENGINES_AVAILABLE:
@@ -725,7 +368,16 @@ elif current_page == "Mapper":
                     st.info("Opening comparison view...")
                 if st.button("View Legal Text", key="view_legal_text"):
                     st.info("Opening legal text viewer...")
-                
+
+                # Summarize button
+                if st.button("📝 Summarize", key="summarize_mapping"):
+                    summary_text = llm_summarize(notes, question=f"What are the key changes from IPC {ipc} to BNS {bns}?")
+                    if summary_text:
+                        with st.expander("📝 Plain-Language Summary"):
+                            st.markdown(summary_text)
+                    else:
+                        st.warning("Summary unavailable. LLM not configured or failed.")
+
                 st.divider()
             else:
                 st.warning("⚠️ Section not found in mapping")
@@ -784,8 +436,8 @@ elif current_page == "OCR":
                     # Try LLM summary
                     summary = llm_summarize(extracted, question="What actions should the user take?")
                     if summary:
-                        st.markdown("### Simplified Action Item")
-                        st.markdown(f"_{summary}_")
+                        with st.expander("📝 Simplified Action Item"):
+                            st.markdown(summary)
                 else:
                     st.code("NOTICE UNDER SECTION 41A CrPC...", language="text")
                     st.markdown("**Simplified Action Item:** The police want you to join the investigation. No immediate arrest required.")
@@ -837,9 +489,8 @@ elif current_page == "Fact":
                 combined = "\n\n".join([line for line in res.split("\n") if line.startswith(">   > _")])
                 summary = llm_summarize(combined, question=user_question)
                 if summary:
-                    st.divider()
-                    st.markdown("### Summary (Plain Language)")
-                    st.markdown(f"_{summary}_")
+                    with st.expander("📝 Summary (Plain Language)"):
+                        st.markdown(summary)
             else:
                 st.info("ℹ️ No citations found. Add PDFs to law_pdfs/ folder to enable search.")
         else:
@@ -857,3 +508,17 @@ elif current_page == "Settings":
     st.markdown("**Version:** 1.0.0")
     st.markdown("**License:** Open Source")
     st.markdown("**Privacy:** 100% Offline - No data sent to servers")
+
+# Footer Bar
+st.markdown(
+    """
+<div class="app-footer">
+  <div class="app-footer-inner">
+    <span class="top-chip">Offline Mode</span>
+    <span class="top-chip">Privacy First</span>
+    <a class="top-credit" href="https://www.flaticon.com/" target="_blank">Icons: Flaticon</a>
+  </div>
+</div>
+""",
+    unsafe_allow_html=True,
+)

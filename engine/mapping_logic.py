@@ -6,7 +6,7 @@ to find their corresponding BNS (Bharatiya Nyaya Sanhita, 2023) equivalents.
 
 The mapping database includes 65+ verified mappings organized by offense categories:
 - Offenses Against State
-- Offenses Against Public Tranquility  
+- Offenses Against Public Tranquility
 - Offenses Against Human Body
 - Offenses Against Property
 - Criminal Breach of Trust & Cheating
@@ -20,6 +20,7 @@ import os
 import json
 from difflib import get_close_matches
 from typing import Optional, List, Dict
+from . import db
 
 _base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 _MAPPING_FILE = os.environ.get("LTA_MAPPING_DB") or os.path.join(_base_dir, "mapping_db.json")
@@ -35,32 +36,24 @@ _mappings = {}
 _metadata = {}
 
 def _load_mappings():
-    """Load mappings from JSON file, separating metadata from actual mappings."""
+    """Load mappings from database."""
     global _mappings, _metadata
     try:
-        if os.path.exists(_MAPPING_FILE):
-            with open(_MAPPING_FILE, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            # Separate metadata from mappings
-            _metadata = data.pop("_metadata", {})
-            _mappings = data
-        else:
+        _mappings = db.get_all_mappings()
+        _metadata = db.get_metadata()
+        if not _mappings:
+            # If DB is empty, use defaults and save to DB
             _mappings = _default_mappings.copy()
-            _save_mappings()
+            for ipc_section, mapping in _mappings.items():
+                db.insert_mapping(
+                    ipc_section,
+                    mapping["bns_section"],
+                    mapping["notes"],
+                    mapping["source"],
+                    mapping["category"]
+                )
     except Exception:
         _mappings = _default_mappings.copy()
-
-
-def _save_mappings():
-    """Save mappings to JSON file, preserving metadata."""
-    try:
-        # Combine metadata with mappings for saving
-        data = {"_metadata": _metadata} if _metadata else {}
-        data.update(_mappings)
-        with open(_MAPPING_FILE, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-    except Exception:
-        pass
 
 _load_mappings()
 
@@ -91,7 +84,7 @@ def map_ipc_to_bns(query: str) -> Optional[dict]:
 def add_mapping(ipc_section: str, bns_section: str, notes: str = "", source: str = "user", category: str = "User Added", persist: bool = True):
     """
     Add a new IPC to BNS mapping at runtime.
-    
+
     Args:
         ipc_section: The IPC section number (e.g., "420")
         bns_section: The corresponding BNS section (e.g., "BNS 318")
@@ -99,16 +92,29 @@ def add_mapping(ipc_section: str, bns_section: str, notes: str = "", source: str
         source: Source of the mapping information
         category: Offense category for organization
         persist: Whether to save to disk immediately
+
+    Returns:
+        bool: True if added successfully, False if duplicate
     """
     key = str(ipc_section).strip()
-    _mappings[key] = {
-        "bns_section": bns_section, 
-        "notes": notes, 
-        "source": source,
-        "category": category
-    }
     if persist:
-        _save_mappings()
+        success = db.insert_mapping(key, bns_section, notes, source, category)
+        if success:
+            _mappings[key] = {
+                "bns_section": bns_section,
+                "notes": notes,
+                "source": source,
+                "category": category
+            }
+        return success
+    else:
+        _mappings[key] = {
+            "bns_section": bns_section,
+            "notes": notes,
+            "source": source,
+            "category": category
+        }
+        return True
 
 
 def get_all_mappings() -> Dict[str, dict]:
