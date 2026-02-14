@@ -5,9 +5,10 @@ Local LLM adapter (optional).
 """
 import os
 import json
+from typing import Optional
 
-OLLAMA_URL = os.environ.get("LTA_OLLAMA_URL")  # e.g., http://localhost:11434
-OLLAMA_MODEL = os.environ.get("LTA_OLLAMA_MODEL", "llama2")
+OLLAMA_URL: Optional[str] = os.environ.get("LTA_OLLAMA_URL")  # e.g., http://localhost:11434
+OLLAMA_MODEL: str = os.environ.get("LTA_OLLAMA_MODEL", "llama2")
 
 def _extractive_summary(text: str, max_sentences: int = 3) -> str:
     # naive sentence split
@@ -16,7 +17,7 @@ def _extractive_summary(text: str, max_sentences: int = 3) -> str:
         return ""
     return ". ".join(sentences[:max_sentences]) + (". " if len(sentences) > 0 else "")
 
-def summarize(text: str, question: str = None) -> str:
+def summarize(text: str, question: Optional[str] = None) -> str:
     if OLLAMA_URL:
         try:
             import requests  # local import to keep dependency optional

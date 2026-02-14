@@ -21,37 +21,27 @@
   z-index: 0;
   pointer-events: none;
   background:
-        /* soft highlights */
-    radial-gradient(
-      650px 240px at 8% 12%,
+    /* soft highlights */
+    radial-gradient(650px 240px at 8% 12%,
       rgba(255, 255, 255, 0.1),
-      transparent 18%
-    ),
-    radial-gradient(
-      600px 220px at 85% 18%,
+      transparent 18%),
+    radial-gradient(600px 220px at 85% 18%,
       rgba(255, 255, 255, 0.08),
-      transparent 16%
-    ),
-    radial-gradient(
-      400px 140px at 50% 30%,
+      transparent 16%),
+    radial-gradient(400px 140px at 50% 30%,
       rgba(255, 255, 255, 0.05),
-      transparent 30%
-    ),
+      transparent 30%),
     /* vertical sheen */
     linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0) 22%),
     /* subtle diagonal glass streaks */
-    repeating-linear-gradient(
-        45deg,
-        rgba(255, 255, 255, 0.012) 0px,
-        rgba(255, 255, 255, 0.012) 1px,
-        rgba(255, 255, 255, 0) 6px
-      ),
-    repeating-linear-gradient(
-      -45deg,
+    repeating-linear-gradient(45deg,
+      rgba(255, 255, 255, 0.012) 0px,
+      rgba(255, 255, 255, 0.012) 1px,
+      rgba(255, 255, 255, 0) 6px),
+    repeating-linear-gradient(-45deg,
       rgba(255, 255, 255, 0.008) 0px,
       rgba(255, 255, 255, 0.008) 1px,
-      rgba(255, 255, 255, 0) 12px
-    ),
+      rgba(255, 255, 255, 0) 12px),
     /* faint dot/noise for texture */
     radial-gradient(rgba(255, 255, 255, 0.004) 1px, transparent 1.5px);
   opacity: 1;
@@ -73,11 +63,9 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(
-    60% 45% at 50% 28%,
-    rgba(255, 255, 255, 0.08),
-    rgba(0, 0, 0, 0.96)
-  );
+  background: radial-gradient(60% 45% at 50% 28%,
+      rgba(255, 255, 255, 0.08),
+      rgba(0, 0, 0, 0.96));
   opacity: 0.18;
   filter: blur(2px);
 }
@@ -89,22 +77,18 @@
   left: 120px;
   width: 640px;
   height: 160px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.02),
-    rgba(255, 255, 255, 0)
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.02),
+      rgba(255, 255, 255, 0));
   transform: rotate(-6deg);
   pointer-events: none;
   opacity: 0.65;
 }
 
 [data-testid="stSidebarNav"] {
-  background: linear-gradient(
-    180deg,
-    rgba(6, 6, 6, 1) 0%,
-    rgba(12, 12, 12, 0.98) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(6, 6, 6, 1) 0%,
+      rgba(12, 12, 12, 0.98) 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.02);
 }
 
@@ -123,11 +107,9 @@
   margin: 0 0 10px 0;
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(
-    180deg,
-    rgba(16, 20, 36, 0.9),
-    rgba(10, 13, 28, 0.92)
-  );
+  background: linear-gradient(180deg,
+      rgba(16, 20, 36, 0.9),
+      rgba(10, 13, 28, 0.92));
   backdrop-filter: blur(10px);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
 }
@@ -225,13 +207,16 @@
   .site-logo .logo-text {
     display: none !important;
   }
+
   .site-logo .logo-icon {
     display: inline !important;
     visibility: visible !important;
   }
+
   .site-logo {
     padding: 10px 12px;
   }
+
   .top-header {
     padding-left: 70px;
   }
@@ -243,6 +228,7 @@
     top: 12px;
     padding: 8px 10px;
   }
+
   .top-header {
     padding-left: 60px;
   }
@@ -254,6 +240,7 @@
     top: 8px;
     padding: 8px 10px;
   }
+
   .top-header {
     padding-left: 50px;
   }
@@ -267,11 +254,9 @@
   gap: 6px;
   padding: 6px 10px;
   border-radius: 14px;
-  background: linear-gradient(
-    180deg,
-    rgba(8, 12, 22, 0.84),
-    rgba(10, 14, 26, 0.92)
-  );
+  background: linear-gradient(180deg,
+      rgba(8, 12, 22, 0.84),
+      rgba(10, 14, 26, 0.92));
   border: 1px solid rgba(255, 255, 255, 0.03);
   flex-wrap: nowrap;
   width: auto;
@@ -314,18 +299,17 @@
 
 .top-nav-link.active {
   color: #ffffff !important;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.035),
-    rgba(255, 255, 255, 0.01)
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0.035),
+      rgba(255, 255, 255, 0.01));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-.top-nav-link + .top-nav-link::before {
+.top-nav-link+.top-nav-link::before {
   content: "";
   position: absolute;
-  left: -5px; /* overlap into the gap */
+  left: -5px;
+  /* overlap into the gap */
   top: 50%;
   transform: translateY(-50%);
   width: 1px;
@@ -345,21 +329,17 @@
   font-size: 12.5px;
   font-weight: 700;
   color: #ffffff !important;
-  background: linear-gradient(
-    180deg,
-    rgba(22, 32, 66, 0.98),
-    rgba(11, 18, 44, 0.98)
-  );
+  background: linear-gradient(180deg,
+      rgba(22, 32, 66, 0.98),
+      rgba(11, 18, 44, 0.98));
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .top-cta:hover {
-  background: linear-gradient(
-    180deg,
-    rgba(29, 42, 84, 0.98),
-    rgba(14, 23, 54, 0.98)
-  );
+  background: linear-gradient(180deg,
+      rgba(29, 42, 84, 0.98),
+      rgba(14, 23, 54, 0.98));
 }
 
 .top-chip {
@@ -389,11 +369,9 @@
   margin-top: 26px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.07);
-  background: linear-gradient(
-    180deg,
-    rgba(13, 18, 35, 0.9),
-    rgba(8, 11, 24, 0.92)
-  );
+  background: linear-gradient(180deg,
+      rgba(13, 18, 35, 0.9),
+      rgba(8, 11, 24, 0.92));
 }
 
 .app-footer-inner {
@@ -412,20 +390,25 @@
     min-height: 0;
     padding: 10px;
   }
+
   .top-header-left {
     min-width: 0;
   }
+
   .top-header-center {
     width: 100%;
     max-width: 100%;
   }
+
   .top-header-right {
     min-width: 0;
     justify-content: flex-start;
   }
+
   .top-brand {
     font-size: 17px;
   }
+
   .top-nav {
     width: 100%;
     overflow-x: auto;
@@ -433,16 +416,20 @@
     justify-content: flex-start;
     padding-bottom: 2px;
   }
+
   .top-nav-link {
     white-space: nowrap;
   }
+
   .top-nav-link.active::after {
     bottom: -6px;
   }
+
   .top-cta {
     padding: 8px 14px;
     font-size: 12px;
   }
+
   .app-footer-inner {
     justify-content: flex-start;
   }
@@ -505,11 +492,9 @@ h6 {
 
 /* Home Cards - Compact Black Theme */
 .home-card {
-  background: linear-gradient(
-    145deg,
-    rgba(20, 20, 20, 0.95),
-    rgba(10, 10, 10, 0.7)
-  );
+  background: linear-gradient(145deg,
+      rgba(20, 20, 20, 0.95),
+      rgba(10, 10, 10, 0.7));
   border: 1px solid rgba(80, 80, 80, 0.25);
   border-radius: 12px;
   padding: 22px;
@@ -531,22 +516,18 @@ h6 {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(
-    circle at top right,
-    rgba(100, 100, 100, 0.08),
-    transparent
-  );
+  background: radial-gradient(circle at top right,
+      rgba(100, 100, 100, 0.08),
+      transparent);
   pointer-events: none;
 }
 
 .home-card:hover {
   border-color: rgba(150, 150, 150, 0.4);
   transform: translateY(-6px);
-  background: linear-gradient(
-    145deg,
-    rgba(30, 30, 30, 1),
-    rgba(15, 15, 15, 0.9)
-  );
+  background: linear-gradient(145deg,
+      rgba(30, 30, 30, 1),
+      rgba(15, 15, 15, 0.9));
   box-shadow:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
     0 20px 40px rgba(0, 0, 0, 0.5),
@@ -601,17 +582,16 @@ a.home-card {
   margin-top: 2px;
   cursor: pointer;
 }
+
 .home-card-btn span:last-child {
   font-size: 18px;
 }
 
 /* Compact Home Card (provided design) */
 .home-card-compact {
-  background: linear-gradient(
-    145deg,
-    rgba(18, 18, 18, 0.95),
-    rgba(12, 12, 12, 0.88)
-  );
+  background: linear-gradient(145deg,
+      rgba(18, 18, 18, 0.95),
+      rgba(12, 12, 12, 0.88));
   border: 1px solid rgba(255, 255, 255, 0.02);
   border-radius: 12px;
   padding: 12px 14px;
@@ -630,15 +610,18 @@ a.home-card {
 .home-card-compact .home-card-header {
   align-items: flex-start;
 }
+
 .home-card-compact .home-card-title {
   font-size: 14px;
   font-weight: 700;
 }
+
 .home-card-compact .home-card-desc {
   font-size: 12px;
   color: #9ea7a2;
   margin-top: 6px;
 }
+
 .home-card-action {
   height: 44px;
   display: flex;
@@ -646,12 +629,10 @@ a.home-card {
 }
 
 /* Style Streamlit button so it visually matches the small pill button in the design */
-.home-card-compact + .stButton > button {
-  background: linear-gradient(
-    180deg,
-    rgba(28, 28, 28, 0.95),
-    rgba(20, 20, 20, 0.95)
-  ) !important;
+.home-card-compact+.stButton>button {
+  background: linear-gradient(180deg,
+      rgba(28, 28, 28, 0.95),
+      rgba(20, 20, 20, 0.95)) !important;
   color: #d9e7df !important;
   border: 1px solid rgba(255, 255, 255, 0.03) !important;
   padding: 8px 12px !important;
@@ -662,7 +643,7 @@ a.home-card {
   margin-top: -48px !important;
 }
 
-.home-card-compact + .stButton > button:after {
+.home-card-compact+.stButton>button:after {
   content: "›";
   margin-left: 8px;
   opacity: 0.85;
@@ -670,11 +651,9 @@ a.home-card {
 
 /* Result Card (Mapper) */
 .result-card {
-  background: linear-gradient(
-    180deg,
-    rgba(18, 18, 18, 0.98),
-    rgba(10, 10, 10, 0.95)
-  );
+  background: linear-gradient(180deg,
+      rgba(18, 18, 18, 0.98),
+      rgba(10, 10, 10, 0.95));
   border: 1px solid rgba(80, 120, 90, 0.08);
   border-radius: 12px;
   padding: 12px 14px 56px 14px;
@@ -721,26 +700,21 @@ a.home-card {
 }
 
 /* Position actual Streamlit buttons so they visually sit inside the result card */
-.result-card + .stButton {
+.result-card+.stButton {
   margin-top: -46px;
   display: inline-block;
   margin-right: 8px;
 }
 
-.result-card + .stButton > button {
-  background: linear-gradient(
-    180deg,
-    rgba(24, 24, 27, 0.95),
-    rgba(17, 17, 20, 0.95)
-  ) !important;
+.result-card+.stButton>button {
+  background: linear-gradient(180deg,
+      rgba(24, 24, 27, 0.95),
+      rgba(17, 17, 20, 0.95)) !important;
   color: #ffffff !important;
   border: 1px solid transparent !important;
-  border-image: linear-gradient(
-      180deg,
+  border-image: linear-gradient(180deg,
       rgba(255, 255, 255, 0.18),
-      rgba(255, 255, 255, 0.04)
-    )
-    1 !important;
+      rgba(255, 255, 255, 0.04)) 1 !important;
   padding: 10px 16px !important;
   border-radius: 10px !important;
   font-weight: 800 !important;
@@ -750,17 +724,15 @@ a.home-card {
 }
 
 /* remove glossy pseudo elements */
-.result-card + .stButton > button::before,
-.result-card + .stButton > button::after {
+.result-card+.stButton>button::before,
+.result-card+.stButton>button::after {
   content: none !important;
 }
 
-.result-card + .stButton + .stButton > button {
-  background: linear-gradient(
-    180deg,
-    rgba(28, 28, 28, 0.96),
-    rgba(12, 12, 12, 0.96)
-  ) !important;
+.result-card+.stButton+.stButton>button {
+  background: linear-gradient(180deg,
+      rgba(28, 28, 28, 0.96),
+      rgba(12, 12, 12, 0.96)) !important;
   color: #e5e7eb !important;
   border: 1px solid rgba(255, 255, 255, 0.06) !important;
   border-radius: 999px !important;
@@ -776,6 +748,7 @@ a.home-card {
   .result-grid {
     flex-direction: column;
   }
+
   .result-card {
     padding-bottom: 64px;
   }
@@ -803,7 +776,7 @@ a.home-card {
 }
 
 /* Flat-modern buttons (no 3D, crisp underline) */
-.stButton > button {
+.stButton>button {
   height: 42px;
   border-radius: 10px;
   color: #ffffff;
@@ -815,18 +788,13 @@ a.home-card {
   z-index: 10;
   width: auto;
   padding: 0 18px;
-  background: linear-gradient(
-    180deg,
-    rgba(24, 24, 27, 0.95),
-    rgba(17, 17, 20, 0.95)
-  );
+  background: linear-gradient(180deg,
+      rgba(24, 24, 27, 0.95),
+      rgba(17, 17, 20, 0.95));
   border: 1px solid transparent;
-  border-image: linear-gradient(
-      180deg,
+  border-image: linear-gradient(180deg,
       rgba(255, 255, 255, 0.18),
-      rgba(255, 255, 255, 0.04)
-    )
-    1;
+      rgba(255, 255, 255, 0.04)) 1;
   box-shadow: none;
   backdrop-filter: saturate(110%);
   transition:
@@ -841,50 +809,45 @@ a.home-card {
 }
 
 /* remove glossy pseudo elements */
-.stButton > button::before,
-.stButton > button::after {
+.stButton>button::before,
+.stButton>button::after {
   content: none !important;
 }
 
-.stButton > button:hover {
+.stButton>button:hover {
   background-image:
     linear-gradient(180deg, rgba(30, 30, 34, 0.98), rgba(20, 20, 24, 0.98)),
     linear-gradient(90deg, #34d399, #60a5fa);
 }
 
-.stButton > button:focus-visible {
+.stButton>button:focus-visible {
   outline: 2px solid #60a5fa;
   outline-offset: 2px;
 }
 
-.stButton > button:active {
+.stButton>button:active {
   transform: translateY(0);
 }
 
 /* Home: full-width glossy CTA in cards */
-.home-card + .stButton > button {
+.home-card+.stButton>button {
   width: 100% !important;
   margin-top: -95px !important;
   padding: 0 20px !important;
   height: 46px !important;
   border-radius: 12px !important;
-  background: linear-gradient(
-    180deg,
-    rgba(24, 24, 27, 0.95),
-    rgba(17, 17, 20, 0.95)
-  ) !important;
+  background: linear-gradient(180deg,
+      rgba(24, 24, 27, 0.95),
+      rgba(17, 17, 20, 0.95)) !important;
   color: #ffffff !important;
   border: 1px solid transparent !important;
-  border-image: linear-gradient(
-      180deg,
+  border-image: linear-gradient(180deg,
       rgba(255, 255, 255, 0.18),
-      rgba(255, 255, 255, 0.04)
-    )
-    1 !important;
+      rgba(255, 255, 255, 0.04)) 1 !important;
   box-shadow: none !important;
 }
 
-.home-card + .stButton > button::before {
+.home-card+.stButton>button::before {
   content: "";
   position: absolute;
   left: 10px;
@@ -892,15 +855,13 @@ a.home-card {
   top: 4px;
   height: 40%;
   border-radius: 999px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.22),
-    rgba(255, 255, 255, 0.02)
-  );
+  background: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.22),
+      rgba(255, 255, 255, 0.02));
   pointer-events: none;
 }
 
-.home-card + .stButton > button::after {
+.home-card+.stButton>button::after {
   content: "";
   position: absolute;
   left: 20px;
@@ -908,11 +869,9 @@ a.home-card {
   bottom: -4px;
   height: 10px;
   border-radius: 999px;
-  background: radial-gradient(
-    60% 100% at 50% 0%,
-    rgba(255, 255, 255, 0.24),
-    rgba(0, 0, 0, 0)
-  );
+  background: radial-gradient(60% 100% at 50% 0%,
+      rgba(255, 255, 255, 0.24),
+      rgba(0, 0, 0, 0));
   opacity: 0.55;
   filter: blur(6px);
 }
@@ -925,20 +884,21 @@ a.home-card {
 }
 
 /* Position result buttons inline and overlay the bottom-right of the card */
-.mapper-wrap .result-card + .stButton {
+.mapper-wrap .result-card+.stButton {
   margin-top: -52px;
   display: inline-block;
   float: right;
 }
 
-.mapper-wrap .result-card + .stButton > button {
+.mapper-wrap .result-card+.stButton>button {
   width: auto !important;
   padding: 8px 14px !important;
   height: 36px !important;
 }
 
-.mapper-wrap .result-card + .stButton + .stButton {
-  margin-right: 10px; /* gap between buttons */
+.mapper-wrap .result-card+.stButton+.stButton {
+  margin-right: 10px;
+  /* gap between buttons */
   float: right;
 }
 
@@ -965,4 +925,32 @@ h3 {
 /* Dividers */
 hr {
   border-color: rgba(100, 100, 100, 0.15);
+}
+
+/* Footer Social Icons */
+.footer-socials {
+  margin-left: auto;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.footer-social-icon {
+  opacity: 0.6;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  text-decoration: none !important;
+}
+
+.footer-social-icon img {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.footer-social-icon:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
 }
