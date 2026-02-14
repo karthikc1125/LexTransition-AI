@@ -516,7 +516,18 @@ st.markdown(
   <div class="app-footer-inner">
     <span class="top-chip">Offline Mode</span>
     <span class="top-chip">Privacy First</span>
-    <a class="top-credit" href="https://www.flaticon.com/" target="_blank">Icons: Flaticon</a>
+    <a class="top-credit" href="https://www.flaticon.com/" target="_blank" rel="noopener noreferrer">Icons: Flaticon</a>
+    <div class="footer-socials">
+      <a href="https://github.com/SharanyaAchanta/" target="_blank" rel="noopener noreferrer" class="footer-social-icon" title="GitHub">
+        <img src="https://cdn.simpleicons.org/github/ffffff" height="20" alt="GitHub">
+      </a>
+      <a href="https://share.streamlit.io/user/sharanyaachanta" target="_blank" rel="noopener noreferrer" class="footer-social-icon" title="Streamlit">
+        <img src="https://cdn.simpleicons.org/streamlit/ff4b4b" height="20" alt="Streamlit">
+      </a>
+      <a href="https://linkedin.com/in/sharanya-achanta-946297276" target="_blank" rel="noopener noreferrer" class="footer-social-icon" title="LinkedIn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg" height="20" alt="LinkedIn">
+      </a>
+    </div>
   </div>
 </div>
 """,
