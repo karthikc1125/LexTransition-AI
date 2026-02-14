@@ -146,6 +146,8 @@ def search_pdfs(query: str, top_k: int = 3):
             emb_res = _emb_search_index(query, top_k=top_k)
             if emb_res:
                 return emb_res
+        except Exception:
+            pass
 
     # Internal embeddings fallback
     if _USE_EMB and _EMB_AVAILABLE:
