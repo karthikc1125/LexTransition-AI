@@ -1,6 +1,6 @@
 /* 1. Main App Container - Professional Legal Theme */
 [data-testid="stAppViewContainer"] {
-  background: 
+  background:
     radial-gradient(ellipse at top, rgba(30, 58, 138, 0.15), transparent 50%),
     radial-gradient(ellipse at bottom right, rgba(17, 24, 39, 0.8), transparent 50%),
     linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #0f172a 100%) !important;
@@ -22,6 +22,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -87,11 +88,57 @@
   border-right: 1px solid rgba(255, 255, 255, 0.02);
 }
 
-/* Hide Streamlit sidebar; navigation is handled via header tabs. */
+/* Default: Hide Streamlit sidebar elements on desktop */
 [data-testid="stSidebar"],
 [data-testid="collapsedControl"],
 [data-testid="stSidebarCollapseButton"] {
   display: none !important;
+}
+
+@media (max-width: 920px) {
+
+  /* Show hamburger (open) button on mobile — positioned RIGHT to avoid brand overlap */
+  [data-testid="collapsedControl"] {
+    display: flex !important;
+    position: fixed !important;
+    top: 15px !important;
+    right: 15px !important;
+    left: auto !important;
+    z-index: 9999 !important;
+    color: white !important;
+    background: rgba(30, 41, 59, 0.8) !important;
+    border-radius: 6px !important;
+    padding: 4px !important;
+  }
+
+  /* Show the sidebar on mobile */
+  [data-testid="stSidebar"] {
+    display: block !important;
+    z-index: 9998 !important;
+  }
+
+  /* Show the close (X) button INSIDE the open sidebar on mobile */
+  [data-testid="stSidebarCollapseButton"] {
+    display: flex !important;
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    z-index: 99999 !important;
+    color: white !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-radius: 6px !important;
+    padding: 4px !important;
+    cursor: pointer !important;
+  }
+
+  /* Force the icon inside the close button to be white */
+  [data-testid="stSidebarCollapseButton"] svg,
+  [data-testid="stSidebarCollapseButton"] button,
+  [data-testid="stSidebarCollapseButton"] span {
+    color: white !important;
+    fill: white !important;
+    filter: brightness(10) !important;
+  }
 }
 
 /* Professional header navigation */
@@ -107,37 +154,67 @@
       rgba(15, 23, 42, 0.98),
       rgba(30, 41, 59, 0.96));
   backdrop-filter: blur(12px) saturate(110%);
-  box-shadow: 
+  box-shadow:
     0 4px 16px rgba(0, 0, 0, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   transition: all 0.2s ease;
 }
 
 .top-header-inner {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  min-height: 56px;
-  padding: 8px 14px;
+  gap: 15px;
+  min-height: auto;
+  padding: 15px 14px;
 }
 
 .top-header-left {
-  display: none;
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .top-header-center {
-  position: static;
-  justify-self: start;
-  width: auto;
-  min-width: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
 }
 
-.top-header-right {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  min-width: max-content;
+@media (max-width: 920px) {
+  .top-header-inner {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 55px 10px 16px;
+    /* 55px right = space for hamburger at right:15px */
+    gap: 8px;
+  }
+
+  .top-header-left {
+    width: auto;
+    justify-content: flex-start;
+    flex-shrink: 0;
+  }
+
+  .top-header-center {
+    width: auto;
+    justify-content: flex-end;
+    flex-shrink: 0;
+  }
+
+  .top-brand {
+    font-size: 15px;
+    gap: 6px;
+  }
+
+  .top-cta {
+    padding: 8px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
 }
 
 .top-brand {
@@ -172,7 +249,7 @@
   font-weight: 700;
   font-size: 15px;
   text-decoration: none !important;
-  box-shadow: 
+  box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: all 0.2s ease;
@@ -181,7 +258,7 @@
 .site-logo:hover {
   transform: translateX(2px);
   border-left-color: rgba(203, 166, 99, 0.9);
-  box-shadow: 
+  box-shadow:
     0 6px 16px rgba(0, 0, 0, 0.6),
     inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
@@ -205,12 +282,11 @@
 
 /* Ensure the logo is visible above everything */
 .top-header .top-brand {
-  display: none !important;
+  display: flex !important;
 }
 
-/* Add left padding to the header to avoid overlap with the fixed logo */
 .top-header {
-  padding-left: 220px;
+  padding-left: 10px;
   padding-right: 10px;
 }
 
@@ -271,12 +347,9 @@
   border-radius: 6px;
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid rgba(148, 163, 184, 0.1);
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   width: auto;
   max-width: 100%;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
 }
 
 .top-nav::-webkit-scrollbar {
@@ -343,7 +416,7 @@
       rgba(203, 166, 99, 1),
       rgba(180, 146, 79, 1));
   border: 1px solid rgba(203, 166, 99, 0.5);
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   transition: all 0.2s ease;
@@ -354,7 +427,7 @@
   background: linear-gradient(180deg,
       rgba(220, 180, 110, 1),
       rgba(203, 166, 99, 1));
-  box-shadow: 
+  box-shadow:
     0 4px 12px rgba(203, 166, 99, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
@@ -401,7 +474,7 @@
       rgba(30, 41, 59, 0.8),
       rgba(15, 23, 42, 0.85));
   backdrop-filter: blur(16px) saturate(150%);
-  box-shadow: 
+  box-shadow:
     0 8px 24px rgba(0, 0, 0, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
@@ -443,11 +516,7 @@
   }
 
   .top-nav {
-    width: 100%;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    padding-bottom: 2px;
+    display: none !important;
   }
 
   .top-nav-link {
@@ -727,6 +796,7 @@ a.home-card {
     opacity: 0;
     transform: translateY(15px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -877,7 +947,7 @@ a.home-card {
       rgba(203, 166, 99, 0.95),
       rgba(180, 146, 79, 0.95));
   border: 1px solid rgba(203, 166, 99, 0.4) !important;
-  box-shadow: 
+  box-shadow:
     0 2px 8px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   transition: all 0.2s ease;
@@ -892,7 +962,7 @@ a.home-card {
   background: linear-gradient(180deg,
       rgba(220, 180, 110, 1),
       rgba(203, 166, 99, 1));
-  box-shadow: 
+  box-shadow:
     0 4px 12px rgba(203, 166, 99, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
@@ -917,7 +987,7 @@ a.home-card {
       rgba(180, 146, 79, 0.95)) !important;
   color: #0f172a !important;
   border: 1px solid rgba(203, 166, 99, 0.5) !important;
-  box-shadow: 
+  box-shadow:
     0 3px 10px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
   font-size: 14px !important;
@@ -930,7 +1000,7 @@ a.home-card {
   background: linear-gradient(180deg,
       rgba(220, 180, 110, 1),
       rgba(203, 166, 99, 1)) !important;
-  box-shadow: 
+  box-shadow:
     0 6px 16px rgba(203, 166, 99, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }

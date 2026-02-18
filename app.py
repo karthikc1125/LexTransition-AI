@@ -108,6 +108,15 @@ nav_items = [
     ("Privacy", "Privacy Policy"),
 ]
 
+# Sidebar Navigation for Mobile
+with st.sidebar:
+    st.markdown('<div class="sidebar-title">LexTransition AI</div>', unsafe_allow_html=True)
+    for page, label in nav_items:
+        if st.button(label, key=f"side_{page}", use_container_width=True):
+            st.session_state.current_page = page
+            st.rerun()
+    st.markdown('<div class="sidebar-badge">Offline Mode • V1.0</div>', unsafe_allow_html=True)
+
 header_links = []
 for page, label in nav_items:
     page_html = html_lib.escape(page)
@@ -129,8 +138,6 @@ st.markdown(
     </div>
     <div class="top-header-center">
       <div class="top-nav">{''.join(header_links)}</div>
-    </div>
-    <div class="top-header-right">
       <a class="top-cta" href="?page=Fact" target="_self">Get Started</a>
     </div>
   </div>
