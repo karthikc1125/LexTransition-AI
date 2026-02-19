@@ -43,10 +43,10 @@ try:
     from engine.mapping_logic import map_ipc_to_bns, add_mapping
     from engine.rag_engine import search_pdfs, add_pdf, index_pdfs
     from engine.db import import_mappings_from_csv, import_mappings_from_excel, export_mappings_to_json, export_mappings_to_csv
-    
+
     # Import the Semantic Comparator Engine
     from engine.comparator import compare_ipc_bns
-    
+
     ENGINES_AVAILABLE = True
 except Exception as e:
     # [FIX 1] Capture the specific error so we can show it
@@ -79,6 +79,7 @@ if ENGINES_AVAILABLE and not st.session_state.get("pdf_indexed"):
 # --- NAVIGATION LOGIC ---
 
 _SAFE_FILENAME_RE = re.compile(r"[^A-Za-z0-9._-]+")
+
 
 def _safe_filename(name: str, default: str) -> str:
     base = os.path.basename(name or "").strip().replace("\x00", "")
@@ -126,7 +127,7 @@ def render_agent_audio(audio_path, title="🎙️ AI Agent Dictation"):
 # reading the page url
 def _read_url_page():
     try:
-        qp = st.query_params 
+        qp = st.query_params
         try:
             val = qp.get("page", None)
         except Exception:
@@ -140,6 +141,7 @@ def _read_url_page():
     except Exception:
         qp = st.experimental_get_query_params()
         return qp.get("page", [None])[0] if qp else None
+
 
 url_page = _read_url_page()
 
@@ -199,71 +201,7 @@ st.markdown(
 
 current_page = st.session_state.current_page
 
-# ============================================================================
-# PAGE: HOME
-# ============================================================================
-if current_page == "Home":
-    st.markdown('<div class="home-header">', unsafe_allow_html=True)
-    st.markdown('<div class="home-title">⚖️ LexTransition AI</div>', unsafe_allow_html=True)
-    st.markdown(
-        '<div class="home-subtitle">'
-        'Your offline legal assistant powered by AI. Analyze documents, map sections, and get instant legal insights—no internet required.'
-        '</div>',
-        unsafe_allow_html=True
-    )
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    st.markdown('<div class="home-what">What do you want to do?</div>', unsafe_allow_html=True)
-    
-    col1, col2 = st.columns(2, gap="large")
-    with col1:
-        st.markdown("""
-        <a class="home-card" href="?page=Mapper" target="_self">
-            <div class="home-card-header">
-                <span class="home-card-icon">✓</span>
-                <div class="home-card-title">Convert IPC to BNS</div>
-            </div>
-            <div class="home-card-desc">Map old IPC sections to new BNS equivalents.</div>
-            <div class="home-card-btn"><span>Open Mapper</span><span>›</span></div>
-        </a>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown("""
-        <a class="home-card" href="?page=OCR" target="_self">
-            <div class="home-card-header">
-                <span class="home-card-icon">📄</span>
-                <div class="home-card-title">Analyze FIR / Notice</div>
-            </div>
-            <div class="home-card-desc">Extract text and action points from documents.</div>
-            <div class="home-card-btn"><span>Upload & Analyze</span><span>›</span></div>
-        </a>
-        """, unsafe_allow_html=True)
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    col3, col4 = st.columns(2, gap="large")
-    with col3:
-        st.markdown("""
-        <a class="home-card" href="?page=Fact" target="_self">
-            <div class="home-card-header">
-                <span class="home-card-icon">📚</span>
-                <div class="home-card-title">Legal Research</div>
-            </div>
-            <div class="home-card-desc">Search and analyze case law and statutes.</div>
-            <div class="home-card-btn"><span>Start Research</span><span>›</span></div>
-        </a>
-        """, unsafe_allow_html=True)
-    with col4:
-        st.markdown("""
-        <a class="home-card" href="?page=Settings" target="_self">
-            <div class="home-card-header">
-                <span class="home-card-icon">⚙️</span>
-                <div class="home-card-title">Settings</div>
-            </div>
-            <div class="home-card-desc">Configure engines and offline settings.</div>
-            <div class="home-card-btn"><span>Configure</span><span>›</span></div>
-        </a>
-        """, unsafe_allow_html=True)
+try:
 
 # ============================================================================
 # PAGE: IPC TO BNS MAPPER
@@ -299,29 +237,28 @@ elif current_page == "Mapper":
         else:
             st.error("❌ Engines are offline. Cannot perform database lookup.")
 
-    st.divider()
+        st.markdown('<div class="home-what">What do you want to do?</div>', unsafe_allow_html=True)
 
-    # --- STEP 2: Render Persistent Results ---
-    # We check session_state instead of search_btn so results survive refreshes
-    if st.session_state.get('last_result'):
-        result = st.session_state['last_result']
-        ipc = st.session_state['last_query']
-        bns = result.get("bns_section", "N/A")
-        notes = result.get("notes", "See source mapping.")
-        source = result.get("source", "mapping_db")
-        
-        # Render Result Card
-        st.markdown(f"""
-        <div class="result-card">
-            <div class="result-badge">Mapping • found</div>
-            <div class="result-grid">
-                <div class="result-col">
-                    <div class="result-col-title">IPC Section</div>
-                    <div style="font-size:20px;font-weight:700;color:var(--text-color);margin-top:6px;">{html_lib.escape(ipc)}</div>
+        col1, col2 = st.columns(2, gap="large")
+
+        with col1:
+            st.markdown("""
+            <a class="home-card" href="?page=Mapper" target="_self">
+                <div class="home-card-header">
+                    <span class="home-card-icon">✓</span>
+                    <div class="home-card-title">Convert IPC to BNS</div>
                 </div>
-                <div class="result-col">
-                    <div class="result-col-title">BNS Section</div>
-                    <div style="font-size:20px;font-weight:700;color:var(--primary-color);margin-top:6px;">{html_lib.escape(bns)}</div>
+                <div class="home-card-desc">Map old IPC sections to new BNS equivalents.</div>
+                <div class="home-card-btn"><span>Open Mapper</span><span>›</span></div>
+            </a>
+            """, unsafe_allow_html=True)
+
+        with col2:
+            st.markdown("""
+            <a class="home-card" href="?page=OCR" target="_self">
+                <div class="home-card-header">
+                    <span class="home-card-icon">📄</span>
+                    <div class="home-card-title">Analyze FIR / Notice</div>
                 </div>
             </div>
             <ul class="result-list"><li>{html_lib.escape(notes)}</li></ul>
@@ -430,7 +367,7 @@ elif current_page == "Mapper":
                 else:
                     st.error("❌ Database Error: Failed to save mapping. Is the database file locked or missing?")
 
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
 
 # ============================================================================
 # PAGE: DOCUMENT OCR
@@ -490,65 +427,52 @@ elif current_page == "OCR":
                 st.error("🚨 Something went wrong during OCR processing.")
                 st.exception(e)
 
+        with col2:
+            if st.button("🔧 Extract & Analyze", use_container_width=True):
 
-# ============================================================================
-# PAGE: FACT CHECKER
-# ============================================================================
-elif current_page == "Fact":
-    st.markdown("## 📚 Grounded Fact Checker")
-    st.markdown("Ask a legal question to verify answers with citations from official PDFs.")
-    st.divider()
+                if uploaded_file is None:
+                    st.warning("⚠ Please upload a file first.")
+                    st.stop()
 
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        user_question = st.text_input(
-            "Question",
-            placeholder="e.g., penalty for cheating?"
-        )
-    with col2:
-        verify_btn = st.button("📖 Verify", use_container_width=True)
+                if not ENGINES_AVAILABLE:
+                    st.error("❌ OCR Engine not available.")
+                    st.stop()
 
-    # ==========================
-    # Upload PDFs
-    # ==========================
-    with st.expander("Upload Law PDFs"):
-        uploaded_pdf = st.file_uploader("Upload PDF", type=["pdf"])
+                try:
+                    with st.spinner("🔍 Extracting text... Please wait"):
+                        raw = uploaded_file.getvalue()
+                        extracted = extract_text(raw)
 
-        if uploaded_pdf and ENGINES_AVAILABLE:
-            try:
-                save_dir = "law_pdfs"
-                os.makedirs(save_dir, exist_ok=True)
-                path = os.path.join(
-                    save_dir,
-                    _safe_filename(uploaded_pdf.name, "doc.pdf")
-                )
+                    if not extracted or not extracted.strip():
+                        st.warning("⚠ No text detected in the uploaded image.")
+                        st.stop()
 
-                with open(path, "wb") as f:
-                    f.write(uploaded_pdf.read())
+                    st.success("✅ Text extraction completed!")
+                    st.text_area("Extracted Text", extracted, height=300)
 
-                add_pdf(path)
-                st.success(f"✅ Added {uploaded_pdf.name}")
+                    with st.spinner("🤖 Generating action items..."):
+                        summary = llm_summarize(extracted, question="Action items?")
 
-            except Exception as e:
-                st.error("🚨 Failed to process uploaded PDF.")
-                st.exception(e)
+                    if summary:
+                        st.success("✅ Analysis completed!")
+                        st.info(f"**Action Item:** {summary}")
+                    else:
+                        st.warning("⚠ No action items found.")
 
-    # ==========================
-    # Verify Question
-    # ==========================
-    if verify_btn:
+                except Exception as e:
+                    st.error("🚨 Something went wrong during OCR processing.")
+                    st.exception(e)
 
-        if not user_question or not user_question.strip():
-            st.warning("⚠ Please enter a question first.")
-            st.stop()
+    # ============================================================================
+    # PAGE: FACT CHECKER
+    # ============================================================================
+    elif current_page == "Fact":
 
-        if not ENGINES_AVAILABLE:
-            st.error("❌ RAG Engine offline.")
-            st.stop()
+        st.markdown("## 📚 Grounded Fact Checker")
+        st.markdown("Ask a legal question to verify answers with citations from official PDFs.")
+        st.divider()
 
-        try:
-            with st.spinner("🔎 Searching legal documents..."):
-                res = search_pdfs(user_question)
+        col1, col2 = st.columns([2, 1])
 
             if res:
                 st.success("✅ Verification complete!")
@@ -565,23 +489,19 @@ elif current_page == "Fact":
             else:
                 st.info("⚠ No citations found for this query.")
 
-        except Exception as e:
-            st.error("🚨 Something went wrong during fact verification.")
-            st.exception(e)
+        with col2:
+            verify_btn = st.button("📖 Verify", use_container_width=True)
 
+        if verify_btn:
 
-# ============================================================================
-# PAGE: SETTINGS
-# ============================================================================
-elif current_page == "Settings":
-    st.markdown("## ⚙️ Settings / About")
-    st.markdown("### LexTransition AI")
-    st.divider()
-    st.markdown("**Version:** 1.0.0 (Alpha)")
-    st.markdown("**Status:** Offline Mode Active")
-    
-    if st.button("Test AI Connection"):
-        with st.spinner("Pinging Ollama..."):
+            if not user_question or not user_question.strip():
+                st.warning("⚠ Please enter a question first.")
+                st.stop()
+
+            if not ENGINES_AVAILABLE:
+                st.error("❌ RAG Engine offline.")
+                st.stop()
+
             try:
                 # Dummy call logic could go here
                 st.success("AI System Online")
@@ -622,6 +542,7 @@ We may update this policy from time to time. The “Last updated” date at the 
 
 For questions about this Privacy Policy or LexTransition AI, please open an issue or discussion on the project’s GitHub repository.
 """)
+
 
 # ============================================================================
 # PAGE: FAQ
@@ -695,8 +616,11 @@ st.markdown(
         <img src="https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg" height="20" alt="LinkedIn">
       </a>
     </div>
-  </div>
-</div>
-""",
-    unsafe_allow_html=True,
-)
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+except Exception as e:
+    st.error("Unexpected Error")
+    st.exception(e)
