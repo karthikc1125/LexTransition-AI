@@ -1,3 +1,4 @@
+
 import os
 import requests
 import json
@@ -5,6 +6,7 @@ from typing import Dict, Optional
 
 # import db, mapping_logic engines
 from engine import db, mapping_logic
+from utils.timeout_handler import execute_with_timeout_retry, AITimeoutError
 
 # Configurable via environment variables (Good for Docker)
 OLLAMA_URL = os.environ.get("LTA_OLLAMA_URL", "http://localhost:11434")
@@ -43,14 +45,10 @@ def compare_ipc_bns(user_query: str) -> Dict[str, str]:
         "analysis": ai_analysis,
         "metadata": mapping  # Contains category, source, notes
     }
-
 def _call_ollama_diff(ipc_text: str, bns_text: str) -> str:
-    """
-    Helper to send the prompt to the local Ollama instance.
-    """
     if not OLLAMA_URL:
         return "ERROR: AI Offline. Please check your Ollama connection."
-    # safety check
+
     if "Text not available" in ipc_text or "Text not available" in bns_text:
         return "ERROR: Cannot analyze. Full legal text is missing."
 
@@ -66,20 +64,33 @@ def _call_ollama_diff(ipc_text: str, bns_text: str) -> str:
         f"Keep the response concise and strictly factual."
     )
 
+    payload = {
+        "model": OLLAMA_MODEL,
+        "prompt": prompt,
+        "stream": False
+    }
+
     try:
-        payload = {"model": OLLAMA_MODEL, 
-                   "prompt": prompt, 
-                   "stream": False}
-        
-        resp = requests.post(f"{OLLAMA_URL}/api/generate", json=payload, timeout=30)
-        
+        def _request(timeout):
+            return requests.post(
+                f"{OLLAMA_URL}/api/generate",
+                json=payload,
+                timeout=timeout
+            )
+
+        resp = execute_with_timeout_retry(_request, retries=2, timeout=30)
+
         if resp.status_code == 200:
             return resp.json().get("response", "No response generated.")
         else:
             return f"ERROR: Ollama returned status {resp.status_code}"
-            
+
+    except AITimeoutError:
+        raise
+
     except requests.exceptions.ConnectionError:
         return "ERROR: Connection refused. Is Ollama running? (Try 'ollama serve')"
+
     except Exception as e:
         return f"ERROR: {str(e)}"
 
