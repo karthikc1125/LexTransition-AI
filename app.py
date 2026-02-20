@@ -4,6 +4,9 @@ import os
 import html as html_lib
 import re
 import time
+import base64
+# Import TTS engine 
+from engine.tts_handler import tts_engine
 
 # Page Configuration
 st.set_page_config(
@@ -12,6 +15,17 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+import glob
+
+# --- audio cleanup ---
+TEMP_AUDIO_DIR = "temp_audio"
+if os.path.exists(TEMP_AUDIO_DIR):
+    for audio_file in glob.glob(os.path.join(TEMP_AUDIO_DIR, "*.wav")):
+        try:
+            os.remove(audio_file)
+        except Exception:
+            pass # File might be playing 
 
 # load css
 def load_css(file_path):
@@ -74,7 +88,43 @@ def _safe_filename(name: str, default: str) -> str:
     safe = _SAFE_FILENAME_RE.sub("_", base).strip("._")
     return safe or default
 
+# render the agent
+def render_agent_audio(audio_path, title="🎙️ AI Agent Dictation"):
+    """Wraps the audio player in a premium custom HTML card."""
+    with open(audio_path, "rb") as f:
+        audio_bytes = f.read()
+    
+    # Encode the audio so we can embed it directly in the HTML
+    audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+    
+    # Custom CSS and HTML structure using flexible rgba colors for dark/light mode compatibility
+    custom_html = f"""
+    <div style="
+        border: 1px solid rgba(128, 128, 128, 0.3);
+        border-radius: 8px;
+        padding: 12px 15px;
+        background: rgba(128, 128, 128, 0.05);
+        display: flex;
+        align-items: center;
+        margin-top: 10px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    ">
+        <div style="margin-right: 15px; font-size: 1.8em;">🤖</div>
+        <div style="flex-grow: 1;">
+            <div style="font-size: 0.9em; font-weight: 600; opacity: 0.8; margin-bottom: 6px; font-family: sans-serif;">
+                {title}
+            </div>
+            <audio controls style="width: 100%; height: 35px; border-radius: 4px; outline: none;">
+                <source src="data:audio/wav;base64,{audio_base64}" type="audio/wav">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
+    </div>
+    """
+    st.markdown(custom_html, unsafe_allow_html=True)
 
+# reading the page url
 def _read_url_page():
     try:
         qp = st.query_params
@@ -153,20 +203,39 @@ current_page = st.session_state.current_page
 
 try:
 
-    # ============================================================================
-    # PAGE: HOME
-    # ============================================================================
-    if current_page == "Home":
+# ============================================================================
+# PAGE: IPC TO BNS MAPPER
+# ============================================================================
+elif current_page == "Mapper":
+    st.markdown("## ✓ IPC → BNS Transition Mapper")
+    st.markdown("Convert old IPC sections into new BNS equivalents with legal-grade accuracy.")
+    st.divider()
+    
+    # Input Section
+    st.markdown('<div class="mapper-wrap">', unsafe_allow_html=True)
+    col1, col2 = st.columns([4, 1])
+    with col1:
+        search_query = st.text_input("Enter IPC Section", placeholder="e.g., 420, 302, 378")
+    with col2:
+        st.write("#") # Spacer
+        search_btn = st.button("🔍 Find BNS Eq.", use_container_width=True)
 
-        st.markdown('<div class="home-header">', unsafe_allow_html=True)
-        st.markdown('<div class="home-title">⚖️ LexTransition AI</div>', unsafe_allow_html=True)
-        st.markdown(
-            '<div class="home-subtitle">'
-            'Your offline legal assistant powered by AI. Analyze documents, map sections, and get instant legal insights—no internet required.'
-            '</div>',
-            unsafe_allow_html=True
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+    # --- STEP 1: Handle Search Logic & State ---
+    if search_query and search_btn:
+        if ENGINES_AVAILABLE:
+            with st.spinner("Searching database..."):
+                res = map_ipc_to_bns(search_query.strip())
+                if res:
+                    st.session_state['last_result'] = res
+                    st.session_state['last_query'] = search_query.strip()
+                    # Reset analysis view for new search
+                    st.session_state['active_analysis'] = None 
+                    st.session_state['active_view_text'] = False
+                else:
+                    st.session_state['last_result'] = None
+                    st.error(f"❌ Section IPC {search_query} not found in database.")
+        else:
+            st.error("❌ Engines are offline. Cannot perform database lookup.")
 
         st.markdown('<div class="home-what">What do you want to do?</div>', unsafe_allow_html=True)
 
@@ -191,118 +260,172 @@ try:
                     <span class="home-card-icon">📄</span>
                     <div class="home-card-title">Analyze FIR / Notice</div>
                 </div>
-                <div class="home-card-desc">Extract text and action points from documents.</div>
-                <div class="home-card-btn"><span>Upload & Analyze</span><span>›</span></div>
-            </a>
-            """, unsafe_allow_html=True)
+            </div>
+            <ul class="result-list"><li>{html_lib.escape(notes)}</li></ul>
+            <div style="font-size:12px;opacity:0.8;margin-top:10px;">Source: {html_lib.escape(source)}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.write("###") 
+
+        # --- STEP 3: Action Buttons ---
+        col_a, col_b, col_c = st.columns(3)
+        
+        with col_a:
+            if st.button("🤖 Analyze Differences (AI)", use_container_width=True):
+                st.session_state['active_analysis'] = ipc
+                st.session_state['active_view_text'] = False
+
+        with col_b:
+            if st.button("📄 View Raw Text", use_container_width=True):
+                st.session_state['active_view_text'] = True
+                st.session_state['active_analysis'] = None
+
+        with col_c:
+            if st.button("📝 Summarize Note", use_container_width=True):
+                st.session_state['active_analysis'] = None
+                st.session_state['active_view_text'] = False
+                summary = llm_summarize(notes, question=f"Changes in {ipc}?")
+                if summary: 
+                    st.success(f"Summary: {summary}")
+
+                    # --- TTS INTEGRATION START (Summary) ---
+                    with st.spinner("🎙️ Agent is preparing audio..."):
+                        audio_path = tts_engine.generate_audio(summary, "temp_summary.wav")
+                        if audio_path and os.path.exists(audio_path):
+                            # Replace st.audio with your new custom UI function
+                            render_agent_audio(audio_path, title="Legal Summary Dictation")
+                    # --- TTS INTEGRATION END ---
+
+                else:
+                    st.error("❌ LLM Engine failed to generate summary.")
+
+        # --- STEP 4: Persistent Views (Rendered outside the columns) ---
+        
+        # 1. AI Analysis View
+        if st.session_state.get('active_analysis') == ipc:
+            st.divider()
+            with st.spinner("Talking to Ollama (AI)..."):
+                comp_result = compare_ipc_bns(ipc)
+                analysis_text = comp_result.get('analysis', "")
+                
+                # Check for tag defined in comparator.py
+                if "ERROR:" in analysis_text or "Error" in analysis_text or "Connection Error" in analysis_text:
+                    st.error(f"❌ AI Error: {analysis_text.replace('ERROR:', '')}")
+                    st.info("💡 Make sure Ollama is running (`ollama serve`) and you have pulled the model (`ollama pull llama3`).")
+                else:
+                    # Final 3-column analysis layout
+                    c1, c2, c3 = st.columns([1, 1.2, 1])
+                    with c1:
+                        st.markdown(f"**📜 IPC {ipc} Text**")
+                        st.info(comp_result.get('ipc_text', 'No text available.'))
+                    with c2:
+                        st.markdown("**🤖 AI Comparison**")
+                        st.success(analysis_text)
+
+                    with c3:
+                        st.markdown(f"**⚖️ {bns} Text**")
+                        st.warning(comp_result.get('bns_text', 'No text available.'))
+
+                    with c2:
+                        # --- TTS INTEGRATION START (AI Analysis) ---
+                        with st.spinner("🎙️ Agent is analyzing text for dictation..."):
+                            audio_path = tts_engine.generate_audio(analysis_text, "temp_analysis.wav")
+                            if audio_path and os.path.exists(audio_path):
+                                # Replace st.audio with your new custom UI function
+                                render_agent_audio(audio_path, title="AI Transition Analysis")
+                        # --- TTS INTEGRATION END ---
+
+        # 2. Raw Text View
+        elif st.session_state.get('active_view_text'):
+            st.divider()
+            v1, v2 = st.columns(2)
+            with v1:
+                st.markdown("**IPC Original Text**")
+                st.text_area("ipc_raw", result.get('ipc_full_text', 'No text found in DB'), height=250, disabled=True)
+            with v2:
+                st.markdown("**BNS Updated Text**")
+                st.text_area("bns_raw", result.get('bns_full_text', 'No text found in DB'), height=250, disabled=True)
+
+    # Add Mapping Form (for when sections aren't found)
+    with st.expander("➕ Add New Mapping to Database"):
+        n_ipc = st.text_input("New IPC Section", value=search_query)
+        n_bns = st.text_input("New BNS Section")
+        n_ipc_text = st.text_area("IPC Legal Text")
+        n_bns_text = st.text_area("BNS Legal Text")
+        n_notes = st.text_input("Short Summary/Note")
+        
+        if st.button("Save to Database"):
+            if not n_ipc or not n_bns:
+                st.warning("⚠️ IPC and BNS section numbers are required.")
+            else:
+                success = add_mapping(n_ipc, n_bns, n_ipc_text, n_bns_text, n_notes)
+                if success:
+                    st.success(f"✅ IPC {n_ipc} successfully mapped to {n_bns} and saved.")
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    st.error("❌ Database Error: Failed to save mapping. Is the database file locked or missing?")
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        col3, col4 = st.columns(2, gap="large")
+# ============================================================================
+# PAGE: DOCUMENT OCR
+# ============================================================================
+elif current_page == "OCR":
+    st.markdown("## 🖼️ Document OCR")
+    st.markdown("Extract text and key action items from legal notices, FIRs, and scanned documents.")
+    st.divider()
+    
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        uploaded_file = st.file_uploader("Upload (FIR/Notice)", type=["jpg", "png", "jpeg"], label_visibility="collapsed")
+        if uploaded_file:
+            st.image(uploaded_file, width=500)
+    
+    with col2:
+        if st.button("🔧 Extract & Analyze", use_container_width=True):
+            # Fixed the indentation for this entire block so it executes inside the button click!
+            if uploaded_file is None:
+                st.warning("⚠ Please upload a file first.")
+                st.stop()
 
-        with col3:
-            st.markdown("""
-            <a class="home-card" href="?page=Fact" target="_self">
-                <div class="home-card-header">
-                    <span class="home-card-icon">📚</span>
-                    <div class="home-card-title">Legal Research</div>
-                </div>
-                <div class="home-card-desc">Search and analyze case law and statutes.</div>
-                <div class="home-card-btn"><span>Start Research</span><span>›</span></div>
-            </a>
-            """, unsafe_allow_html=True)
+            if not ENGINES_AVAILABLE:
+                st.error("❌ OCR Engine not available.")
+                st.stop()
 
-        with col4:
-            st.markdown("""
-            <a class="home-card" href="?page=Settings" target="_self">
-                <div class="home-card-header">
-                    <span class="home-card-icon">⚙️</span>
-                    <div class="home-card-title">Settings</div>
-                </div>
-                <div class="home-card-desc">Configure engines and offline settings.</div>
-                <div class="home-card-btn"><span>Configure</span><span>›</span></div>
-            </a>
-            """, unsafe_allow_html=True)
+            try:
+                with st.spinner("🔍 Extracting text... Please wait"):
+                    raw = uploaded_file.getvalue()   # <-- change here
+                    extracted = extract_text(raw)
 
-    # ============================================================================
-    # PAGE: IPC TO BNS MAPPER
-    # ============================================================================
-    elif current_page == "Mapper":
+                if not extracted or not extracted.strip():
+                    st.warning("⚠ No text detected in the uploaded image.")
+                    st.stop()
 
-        st.markdown("## ✓ IPC → BNS Transition Mapper")
-        st.markdown("Convert old IPC sections into new BNS equivalents with legal-grade accuracy.")
-        st.divider()
+                st.success("✅ Text extraction completed!")
+                st.text_area("Extracted Text", extracted, height=300)
 
-        st.markdown('<div class="mapper-wrap">', unsafe_allow_html=True)
+                with st.spinner("🤖 Generating action items..."):
+                    summary = llm_summarize(extracted, question="Action items?")
 
-        col1, col2 = st.columns([4, 1])
+                if summary:
+                    st.success("✅ Analysis completed!")
+                    st.info(f"**Action Item:** {summary}")
 
-        with col1:
-            search_query = st.text_input("Enter IPC Section", placeholder="e.g., 420, 302, 378")
+                    # --- TTS INTEGRATION START (OCR Action Items) ---
+                    with st.spinner("🎙️ Agent is preparing action items dictation..."):
+                        audio_path = tts_engine.generate_audio(summary, "temp_ocr.wav")
+                        if audio_path and os.path.exists(audio_path):
+                            render_agent_audio(audio_path, title="Action Items Dictation")
+                    # --- TTS INTEGRATION END ---
 
-        with col2:
-            st.write("##")
-            search_btn = st.button("🔍 Find BNS Eq.", use_container_width=True)
+                else:
+                    st.warning("⚠ No action items found.")
 
-        if search_query and search_btn:
-            if ENGINES_AVAILABLE:
-                with st.spinner("Searching database..."):
-                    res = map_ipc_to_bns(search_query.strip())
-                    if res:
-                        st.session_state['last_result'] = res
-                        st.session_state['last_query'] = search_query.strip()
-                        st.session_state['active_analysis'] = None
-                        st.session_state['active_view_text'] = False
-                    else:
-                        st.session_state['last_result'] = None
-                        st.error(f"❌ Section IPC {search_query} not found in database.")
-            else:
-                st.error("❌ Engines are offline. Cannot perform database lookup.")
-
-        st.divider()
-
-        if st.session_state.get('last_result'):
-            result = st.session_state['last_result']
-            ipc = st.session_state['last_query']
-            bns = result.get("bns_section", "N/A")
-            notes = result.get("notes", "See source mapping.")
-            source = result.get("source", "mapping_db")
-
-            st.markdown(f"""
-            <div class="result-card">
-                <div class="result-badge">Mapping • found</div>
-                <div class="result-grid">
-                    <div class="result-col">
-                        <div class="result-col-title">IPC Section</div>
-                        <div style="font-size:20px;font-weight:700;color:var(--text-color);margin-top:6px;">{html_lib.escape(ipc)}</div>
-                    </div>
-                    <div class="result-col">
-                        <div class="result-col-title">BNS Section</div>
-                        <div style="font-size:20px;font-weight:700;color:var(--primary-color);margin-top:6px;">{html_lib.escape(bns)}</div>
-                    </div>
-                </div>
-                <ul class="result-list"><li>{html_lib.escape(notes)}</li></ul>
-                <div style="font-size:12px;opacity:0.8;margin-top:10px;">Source: {html_lib.escape(source)}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    # ============================================================================
-    # PAGE: DOCUMENT OCR
-    # ============================================================================
-    elif current_page == "OCR":
-
-        st.markdown("## 🖼️ Document OCR")
-        st.markdown("Extract text and key action items from legal notices, FIRs, and scanned documents.")
-        st.divider()
-
-        col1, col2 = st.columns([1, 1])
-
-        with col1:
-            uploaded_file = st.file_uploader("Upload (FIR/Notice)", type=["jpg", "png", "jpeg"], label_visibility="collapsed")
-            if uploaded_file:
-                st.image(uploaded_file, width=500)
+            except Exception as e:
+                st.error("🚨 Something went wrong during OCR processing.")
+                st.exception(e)
 
         with col2:
             if st.button("🔧 Extract & Analyze", use_container_width=True):
@@ -351,11 +474,20 @@ try:
 
         col1, col2 = st.columns([2, 1])
 
-        with col1:
-            user_question = st.text_input(
-                "Question",
-                placeholder="e.g., penalty for cheating?"
-            )
+            if res:
+                st.success("✅ Verification complete!")
+                st.markdown(res)
+                
+                # --- TTS INTEGRATION START (Fact Checker) ---
+                with st.spinner("🎙️ Agent is preparing the verbal citation..."):
+                    # Pass the 'res' string directly to the audio engine
+                    audio_path = tts_engine.generate_audio(res, "temp_fact_check.wav")
+                    if audio_path and os.path.exists(audio_path):
+                        render_agent_audio(audio_path, title="Legal Fact Dictation")
+                # --- TTS INTEGRATION END ---
+                
+            else:
+                st.info("⚠ No citations found for this query.")
 
         with col2:
             verify_btn = st.button("📖 Verify", use_container_width=True)
